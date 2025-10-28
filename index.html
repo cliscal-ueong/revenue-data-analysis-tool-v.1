@@ -295,6 +295,33 @@
             display: none;
         }
 
+        .search-container {
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-results-info {
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 0.95em;
+        }
+
         .pivot-table-container {
             overflow-x: auto;
             background: white;
@@ -571,11 +598,22 @@
             </div>
 
             <button class="generate-btn" id="generateBtn" onclick="generatePivotTable()" style="display: none;">
-                피벗 테이블 생성
+                분석 시작
             </button>
 
             <div class="result-section" id="resultSection">
                 <div class="stats-summary" id="statsSummary"></div>
+                
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="🔍 검색어를 입력하세요... (예: 2025/04, 판매금액 등)"
+                        oninput="filterTable()"
+                    >
+                    <div class="search-results-info" id="searchInfo"></div>
+                </div>
                 
                 <div class="pivot-table-container">
                     <table class="pivot-table" id="pivotTable"></table>
@@ -1061,6 +1099,16 @@
             renderPivotTable(pivotData);
             renderStats();
             
+            // 검색창 초기화
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            const searchInfo = document.getElementById('searchInfo');
+            if (searchInfo) {
+                searchInfo.textContent = '';
+            }
+            
             document.getElementById('resultSection').style.display = 'block';
         }
 
@@ -1352,6 +1400,41 @@
                 `;
                 statsDiv.appendChild(card);
             });
+        }
+
+        function filterTable() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const table = document.getElementById('pivotTable');
+            const tbody = table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            let visibleCount = 0;
+            let totalCount = rows.length;
+            
+            rows.forEach((row, index) => {
+                // 첫 번째 행은 TOTAL(합계) 행이므로 항상 표시
+                if (index === 0) {
+                    row.style.display = '';
+                    return;
+                }
+                
+                const rowText = row.textContent.toLowerCase();
+                
+                if (searchInput === '' || rowText.includes(searchInput)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 검색 결과 정보 표시
+            const searchInfo = document.getElementById('searchInfo');
+            if (searchInput === '') {
+                searchInfo.textContent = '';
+            } else {
+                searchInfo.textContent = `검색 결과: ${visibleCount}개 / 전체 ${totalCount - 1}개 행`; // TOTAL 행 제외
+            }
         }
 
         function exportToCSV() {
