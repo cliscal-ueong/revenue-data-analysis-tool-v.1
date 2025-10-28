@@ -641,6 +641,11 @@
         function handleFile(file) {
             const fileName = file.name.toLowerCase();
             
+            // 업로드 섹션에 로딩 표시
+            const uploadSection = document.getElementById('uploadSection');
+            uploadSection.style.opacity = '0.6';
+            uploadSection.innerHTML = '<div class="upload-icon">⏳</div><h2>파일 처리 중...</h2>';
+            
             if (fileName.endsWith('.csv')) {
                 Papa.parse(file, {
                     header: true,
@@ -649,20 +654,68 @@
                         rawData = processDateColumns(rawData);
                         headers = Object.keys(rawData[0] || {});
                         initializePivotControls();
+                        
+                        // 성공 메시지
+                        uploadSection.style.opacity = '1';
+                        uploadSection.innerHTML = `
+                            <div class="upload-icon">✅</div>
+                            <h2 style="color: #28a745;">업로드 완료!</h2>
+                            <p style="margin: 15px 0; color: #6c757d;">${file.name} (${rawData.length}개 행)</p>
+                        `;
+                        alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length}개 행\n컬럼: ${headers.length}개`);
+                    },
+                    error: (error) => {
+                        alert('❌ CSV 파일 읽기 실패: ' + error.message);
+                        uploadSection.style.opacity = '1';
+                        uploadSection.innerHTML = `
+                            <div class="upload-icon">📁</div>
+                            <h2>파일을 드래그하거나 클릭하여 업로드</h2>
+                            <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원</p>
+                            <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                            <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                        `;
                     }
                 });
             } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    rawData = processDateColumns(jsonData);
-                    headers = Object.keys(rawData[0] || {});
-                    initializePivotControls();
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                        rawData = processDateColumns(jsonData);
+                        headers = Object.keys(rawData[0] || {});
+                        initializePivotControls();
+                        
+                        // 성공 메시지
+                        uploadSection.style.opacity = '1';
+                        uploadSection.innerHTML = `
+                            <div class="upload-icon">✅</div>
+                            <h2 style="color: #28a745;">업로드 완료!</h2>
+                            <p style="margin: 15px 0; color: #6c757d;">${file.name} (${rawData.length}개 행)</p>
+                        `;
+                        alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length}개 행\n컬럼: ${headers.length}개`);
+                    } catch (error) {
+                        alert('❌ Excel 파일 읽기 실패: ' + error.message);
+                        uploadSection.style.opacity = '1';
+                        uploadSection.innerHTML = `
+                            <div class="upload-icon">📁</div>
+                            <h2>파일을 드래그하거나 클릭하여 업로드</h2>
+                            <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원</p>
+                            <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                            <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                        `;
+                    }
+                };
+                reader.onerror = () => {
+                    alert('❌ 파일 읽기 실패');
+                    uploadSection.style.opacity = '1';
                 };
                 reader.readAsArrayBuffer(file);
+            } else {
+                alert('❌ 지원하지 않는 파일 형식입니다.\nCSV 또는 Excel 파일만 업로드 가능합니다.');
+                uploadSection.style.opacity = '1';
             }
         }
 
