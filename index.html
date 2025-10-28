@@ -515,7 +515,7 @@
                 <h2>파일을 드래그하거나 클릭하여 업로드</h2>
                 <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원</p>
                 <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">파일 선택</button>
+                <button class="upload-btn" id="uploadBtn">파일 선택</button>
             </div>
 
             <div class="pivot-controls" id="pivotControls">
@@ -609,8 +609,13 @@
         // 파일 업로드 처리
         const uploadSection = document.getElementById('uploadSection');
         const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
 
-        uploadSection.addEventListener('click', () => fileInput.click());
+        // 버튼 클릭만 파일 선택창 열기
+        uploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 이벤트 전파 방지
+            fileInput.click();
+        });
         
         uploadSection.addEventListener('dragover', (e) => {
             e.preventDefault();
