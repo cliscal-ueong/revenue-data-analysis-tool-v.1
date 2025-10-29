@@ -1503,13 +1503,20 @@
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
             
+            // No 컬럼 추가
+            const noTh = document.createElement('th');
+            noTh.textContent = 'No';
+            noTh.style.width = '50px';
+            noTh.style.textAlign = 'center';
+            headerRow.appendChild(noTh);
+            
             pivotConfig.rows.forEach(r => {
                 const th = document.createElement('th');
                 th.textContent = r;
                 headerRow.appendChild(th);
             });
 
-            let valueColumnIndex = pivotConfig.rows.length; // 값 컬럼이 시작하는 인덱스
+            let valueColumnIndex = pivotConfig.rows.length + 1; // No 컬럼 추가로 +1
 
             if (uniqueCols.length === 1 && uniqueCols[0] === '') {
                 pivotConfig.values.forEach((v, idx) => {
@@ -1593,6 +1600,14 @@
             totalRow.style.top = '0';
             totalRow.style.zIndex = '9';
             
+            // No 컬럼 (빈 셀)
+            const totalNoTd = document.createElement('td');
+            totalNoTd.textContent = '';
+            totalNoTd.style.fontWeight = 'bold';
+            totalNoTd.style.background = '#e7e9ff';
+            totalNoTd.style.textAlign = 'center';
+            totalRow.appendChild(totalNoTd);
+            
             const totalLabelTd = document.createElement('td');
             totalLabelTd.textContent = 'TOTAL(합계)';
             totalLabelTd.colSpan = pivotConfig.rows.length;
@@ -1648,8 +1663,16 @@
             tbody.appendChild(totalRow);
 
             // 일반 데이터 행들 추가
-            uniqueRows.forEach(rowKey => {
+            uniqueRows.forEach((rowKey, rowIndex) => {
                 const tr = document.createElement('tr');
+                
+                // No 컬럼 (행 번호)
+                const noTd = document.createElement('td');
+                noTd.textContent = rowIndex + 1;
+                noTd.style.textAlign = 'center';
+                noTd.style.fontWeight = '600';
+                noTd.style.color = '#667eea';
+                tr.appendChild(noTd);
                 
                 const rowValues = rowKey.split('|||');
                 rowValues.forEach(val => {
