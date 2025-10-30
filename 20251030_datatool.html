@@ -82,6 +82,7 @@
             margin-bottom: 30px;
             transition: all 0.3s ease;
             cursor: pointer;
+            min-height: 200px;
         }
 
         .upload-section:hover {
@@ -117,6 +118,295 @@
 
         .upload-btn:hover {
             transform: translateY(-2px);
+        }
+
+        .file-list-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .file-list-section.active {
+            display: block;
+        }
+
+        .file-list {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .file-list-item:hover {
+            background: #e9ecef;
+        }
+
+        .file-list-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .file-list-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-list-item-size {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .file-remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.2s;
+        }
+
+        .file-remove-btn:hover {
+            background: #c82333;
+        }
+
+        .generate-file-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .generate-file-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .generate-file-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 토스트 알림 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            font-weight: 600;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOut 0.3s ease-in;
+        }
+
+        /* 데이터 미리보기 버튼 */
+        .file-preview-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.2s;
+            margin-right: 8px;
+        }
+
+        .file-preview-btn:hover {
+            background: #5568d3;
+        }
+
+        /* 데이터 미리보기 섹션 */
+        .data-preview-section {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .data-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .data-preview-title {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .data-preview-close {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+
+        .data-preview-close:hover {
+            background: #c82333;
+        }
+
+        .data-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .data-preview-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-preview-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9ecef;
+            text-align: left;
+        }
+
+        .data-preview-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-preview-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            color: #004085;
+            font-size: 0.9em;
+        }
+
+        /* 병합 완료 후 파일 정보 */
+        .uploaded-files-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            text-align: left;
+        }
+
+        .uploaded-files-info h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .uploaded-file-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        /* 필드 영역 상단의 파일 정보 */
+        .current-files-info {
+            background: linear-gradient(135deg, #e7e9ff 0%, #f0e7ff 100%);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .current-files-info h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-file-tag {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            border: 1px solid #667eea;
+        }
+
+        .file-list-item-actions {
+            display: flex;
+            gap: 8px;
         }
 
         .pivot-controls {
@@ -788,9 +1078,18 @@
             <div class="upload-section" id="uploadSection">
                 <div class="upload-icon">📁</div>
                 <h2>파일을 드래그하거나 클릭하여 업로드</h2>
-                <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원</p>
-                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원 | 다수의 파일을 업로드할 수 있습니다</p>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls" multiple>
                 <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                
+                <!-- 파일 목록 섹션 -->
+                <div class="file-list-section" id="fileListSection">
+                    <h3 style="color: #667eea; margin-bottom: 10px;">📋 업로드 대기 중인 파일</h3>
+                    <div class="file-list" id="fileList"></div>
+                    <button class="generate-file-btn" id="generateFileBtn" onclick="processAllFiles()">
+                        🚀 데이터 병합 및 생성
+                    </button>
+                </div>
             </div>
 
             <div class="pivot-controls" id="pivotControls">
@@ -920,6 +1219,10 @@
         let chartInstance = null; // 차트 인스턴스
         let chartTypeConfig = {}; // 각 데이터셋의 차트 타입 설정 {datasetLabel: 'bar' or 'line'}
         let axisConfig = {}; // 각 데이터셋의 축 설정 {datasetLabel: 'left' or 'right'}
+        
+        // 다중 파일 업로드 관련 변수
+        let pendingFiles = []; // 업로드 대기 중인 파일들
+        let uploadedFileNames = []; // 병합 완료된 파일명들
 
         // 파일 업로드 처리
         const uploadSection = document.getElementById('uploadSection');
@@ -934,24 +1237,430 @@
         
         uploadSection.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadSection.classList.add('drag-over');
+            const target = e.currentTarget;
+            if (target && target.classList) {
+                target.classList.add('drag-over');
+            }
         });
 
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('drag-over');
+        uploadSection.addEventListener('dragleave', (e) => {
+            const target = e.currentTarget;
+            if (target && target.classList) {
+                target.classList.remove('drag-over');
+            }
         });
 
         uploadSection.addEventListener('drop', (e) => {
             e.preventDefault();
-            uploadSection.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
+            const target = e.currentTarget;
+            if (target && target.classList) {
+                target.classList.remove('drag-over');
+            }
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) addFilesToList(files);
         });
 
         fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
+            const files = Array.from(e.target.files);
+            if (files.length > 0) addFilesToList(files);
         });
+
+        // 파일을 목록에 추가
+        function addFilesToList(files) {
+            let addedCount = 0;
+            
+            files.forEach(file => {
+                const fileName = file.name.toLowerCase();
+                
+                // 파일 형식 검증
+                if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+                    showToast(`❌ ${file.name}은(는) 지원하지 않는 형식입니다`, '#dc3545');
+                    return;
+                }
+                
+                // 중복 파일 체크
+                if (pendingFiles.some(f => f.name === file.name)) {
+                    showToast(`⚠️ ${file.name}은(는) 이미 목록에 있습니다`, '#ffc107');
+                    return;
+                }
+                
+                pendingFiles.push(file);
+                addedCount++;
+            });
+            
+            // 파일 목록 UI 업데이트
+            if (addedCount > 0) {
+                updateFileList();
+                if (addedCount === 1) {
+                    showToast(`✅ ${files[0].name} 추가됨`, '#28a745');
+                } else {
+                    showToast(`✅ ${addedCount}개 파일 추가됨`, '#28a745');
+                }
+            }
+        }
+
+        // 토스트 알림 표시
+        function showToast(message, bgColor = '#28a745') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            if (bgColor !== '#28a745') {
+                toast.style.background = bgColor;
+            }
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 2500);
+        }
+
+        // 파일 데이터 미리보기
+        async function previewFileData(file, index) {
+            try {
+                const fileName = file.name.toLowerCase();
+                let fileData = [];
+                
+                showToast('📄 데이터 로딩 중...', '#667eea');
+                
+                if (fileName.endsWith('.csv')) {
+                    fileData = await new Promise((resolve, reject) => {
+                        Papa.parse(file, {
+                            header: true,
+                            complete: (results) => {
+                                const cleanData = results.data.filter(row => Object.values(row).some(val => val !== ''));
+                                resolve(cleanData);
+                            },
+                            error: (error) => reject(error)
+                        });
+                    });
+                } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    fileData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const data = new Uint8Array(e.target.result);
+                                const workbook = XLSX.read(data, { type: 'array' });
+                                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                                resolve(jsonData);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        };
+                        reader.onerror = () => reject(new Error('파일 읽기 실패'));
+                        reader.readAsArrayBuffer(file);
+                    });
+                }
+                
+                if (fileData.length === 0) {
+                    showToast('⚠️ 데이터가 없습니다', '#ffc107');
+                    return;
+                }
+                
+                // 미리보기 표시
+                displayDataPreview(file.name, fileData);
+                
+            } catch (error) {
+                showToast('❌ 데이터 로딩 실패: ' + error.message, '#dc3545');
+            }
+        }
+
+        // 데이터 미리보기 표시
+        function displayDataPreview(fileName, data) {
+            // 기존 미리보기가 있으면 제거
+            const existingPreview = document.querySelector('.data-preview-section');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            
+            const fileListSection = document.getElementById('fileListSection');
+            
+            const previewSection = document.createElement('div');
+            previewSection.className = 'data-preview-section';
+            
+            const header = document.createElement('div');
+            header.className = 'data-preview-header';
+            
+            const title = document.createElement('div');
+            title.className = 'data-preview-title';
+            title.textContent = `📊 ${fileName} 데이터 미리보기`;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'data-preview-close';
+            closeBtn.textContent = '✕ 닫기';
+            closeBtn.onclick = () => previewSection.remove();
+            
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+            previewSection.appendChild(header);
+            
+            // 정보 표시
+            const info = document.createElement('div');
+            info.className = 'data-preview-info';
+            const displayRows = Math.min(data.length, 100);
+            info.textContent = `총 ${data.length.toLocaleString()}개 행 중 ${displayRows.toLocaleString()}개 행 표시`;
+            previewSection.appendChild(info);
+            
+            // 테이블 생성
+            const table = document.createElement('table');
+            table.className = 'data-preview-table';
+            
+            // 헤더
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = Object.keys(data[0] || {});
+            
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // 데이터 (최대 100행)
+            const tbody = document.createElement('tbody');
+            data.slice(0, 100).forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    const value = row[header];
+                    td.textContent = value !== null && value !== undefined ? value : '';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            
+            previewSection.appendChild(table);
+            fileListSection.appendChild(previewSection);
+            
+            // 스크롤을 미리보기로 이동
+            previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 파일 목록 UI 업데이트
+        function updateFileList() {
+            const fileListSection = document.getElementById('fileListSection');
+            const fileList = document.getElementById('fileList');
+            
+            // 요소가 없으면 (이미 제거된 경우) 조용히 종료
+            if (!fileListSection || !fileList) {
+                return;
+            }
+            
+            if (pendingFiles.length === 0) {
+                if (fileListSection.classList) {
+                    fileListSection.classList.remove('active');
+                }
+                return;
+            }
+            
+            if (fileListSection.classList) {
+                fileListSection.classList.add('active');
+            }
+            fileList.innerHTML = '';
+            
+            pendingFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-list-item';
+                item.style.animation = 'slideIn 0.3s ease-out';
+                
+                const info = document.createElement('div');
+                info.className = 'file-list-item-info';
+                
+                const name = document.createElement('div');
+                name.className = 'file-list-item-name';
+                name.textContent = file.name;
+                
+                const size = document.createElement('div');
+                size.className = 'file-list-item-size';
+                size.textContent = formatFileSize(file.size);
+                
+                const actions = document.createElement('div');
+                actions.className = 'file-list-item-actions';
+                
+                const previewBtn = document.createElement('button');
+                previewBtn.className = 'file-preview-btn';
+                previewBtn.textContent = '미리보기';
+                previewBtn.onclick = () => previewFileData(file, index);
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'file-remove-btn';
+                removeBtn.textContent = '삭제';
+                removeBtn.onclick = () => {
+                    pendingFiles.splice(index, 1);
+                    updateFileList();
+                    showToast(`✅ ${file.name} 삭제됨`, '#dc3545');
+                };
+                
+                info.appendChild(name);
+                info.appendChild(size);
+                actions.appendChild(previewBtn);
+                actions.appendChild(removeBtn);
+                item.appendChild(info);
+                item.appendChild(actions);
+                fileList.appendChild(item);
+            });
+        }
+
+        // 파일 크기 포맷팅
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // 모든 파일을 병합하여 처리
+        async function processAllFiles() {
+            if (pendingFiles.length === 0) {
+                alert('⚠️ 업로드할 파일이 없습니다.');
+                return;
+            }
+            
+            const uploadSection = document.getElementById('uploadSection');
+            uploadSection.style.opacity = '0.6';
+            uploadSection.innerHTML = '<div class="upload-icon">⏳</div><h2>파일 병합 중...</h2><p>잠시만 기다려주세요...</p>';
+            
+            try {
+                let allData = [];
+                let firstHeaders = null;
+                
+                // 모든 파일을 순차적으로 읽기
+                for (let i = 0; i < pendingFiles.length; i++) {
+                    const file = pendingFiles[i];
+                    const fileName = file.name.toLowerCase();
+                    
+                    let fileData = [];
+                    
+                    if (fileName.endsWith('.csv')) {
+                        // CSV 파일 처리
+                        fileData = await new Promise((resolve, reject) => {
+                            Papa.parse(file, {
+                                header: true,
+                                complete: (results) => {
+                                    const cleanData = results.data.filter(row => Object.values(row).some(val => val !== ''));
+                                    resolve(cleanData);
+                                },
+                                error: (error) => reject(error)
+                            });
+                        });
+                    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                        // Excel 파일 처리
+                        fileData = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                try {
+                                    const data = new Uint8Array(e.target.result);
+                                    const workbook = XLSX.read(data, { type: 'array' });
+                                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                                    resolve(jsonData);
+                                } catch (error) {
+                                    reject(error);
+                                }
+                            };
+                            reader.onerror = () => reject(new Error('파일 읽기 실패'));
+                            reader.readAsArrayBuffer(file);
+                        });
+                    }
+                    
+                    // 빈 데이터 체크
+                    if (fileData.length === 0) {
+                        throw new Error(`${file.name}에 데이터가 없습니다.`);
+                    }
+                    
+                    // 첫 번째 파일의 헤더를 기준으로 설정
+                    const fileHeaders = Object.keys(fileData[0]);
+                    if (firstHeaders === null) {
+                        firstHeaders = fileHeaders;
+                    } else {
+                        // 헤더 일치 여부 확인
+                        const headersMatch = firstHeaders.length === fileHeaders.length && 
+                                           firstHeaders.every(h => fileHeaders.includes(h));
+                        
+                        if (!headersMatch) {
+                            throw new Error(`❌ 파일 구조 불일치!\n\n첫 번째 파일과 ${file.name}의 컬럼이 다릅니다.\n모든 파일의 컬럼 구조가 동일해야 합니다.`);
+                        }
+                    }
+                    
+                    // 데이터 병합
+                    allData = allData.concat(fileData);
+                }
+                
+                // 일시 컬럼에서 시간 정보 제거
+                rawData = processDateColumns(allData);
+                headers = Object.keys(rawData[0] || {});
+                
+                // 업로드된 파일 목록 저장 (전역 변수에)
+                uploadedFileNames = pendingFiles.map(f => f.name);
+                
+                // 초기화
+                initializePivotControls();
+                
+                // 성공 메시지 - 파일 정보 포함
+                uploadSection.style.opacity = '1';
+                uploadSection.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <h2 style="color: #28a745;">파일 병합 완료!</h2>
+                    <p style="margin: 15px 0; color: #6c757d;">
+                        ${uploadedFileNames.length}개 파일 병합 완료<br>
+                        총 ${rawData.length.toLocaleString()}개 행, ${headers.length}개 컬럼
+                    </p>
+                    <div class="uploaded-files-info">
+                        <h4>📂 업로드된 파일</h4>
+                        <div>
+                            ${uploadedFileNames.map(name => `<span class="uploaded-file-tag">${name}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                // 파일 목록 초기화
+                pendingFiles = [];
+                updateFileList();
+                
+                // alert는 마지막에 (화면 업데이트 후)
+                setTimeout(() => {
+                    alert(`✅ 파일 병합 완료!\n\n파일 수: ${uploadedFileNames.length}개\n총 데이터: ${rawData.length.toLocaleString()}개 행\n컬럼: ${headers.length}개`);
+                }, 100);
+                
+            } catch (error) {
+                alert('❌ 파일 처리 실패: ' + error.message);
+                uploadSection.style.opacity = '1';
+                uploadSection.innerHTML = `
+                    <div class="upload-icon">📁</div>
+                    <h2>파일을 드래그하거나 클릭하여 업로드</h2>
+                    <p style="margin: 15px 0; color: #6c757d;">CSV, Excel (XLS, XLSX) 파일 지원 | 다수의 파일을 업로드할 수 있습니다</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls" multiple>
+                    <button class="upload-btn" id="uploadBtn">파일 선택</button>
+                    <div class="file-list-section" id="fileListSection">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">📋 업로드 대기 중인 파일</h3>
+                        <div class="file-list" id="fileList"></div>
+                        <button class="generate-file-btn" id="generateFileBtn" onclick="processAllFiles()">
+                            🚀 데이터 병합 및 생성
+                        </button>
+                    </div>
+                `;
+                
+                // 이벤트 리스너 재등록
+                const newUploadBtn = document.getElementById('uploadBtn');
+                const newFileInput = document.getElementById('fileInput');
+                newUploadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    newFileInput.click();
+                });
+                newFileInput.addEventListener('change', (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) addFilesToList(files);
+                });
+                
+                updateFileList();
+            }
+        }
 
         function handleFile(file) {
             const fileName = file.name.toLowerCase();
@@ -968,6 +1677,10 @@
                         rawData = results.data.filter(row => Object.values(row).some(val => val !== ''));
                         rawData = processDateColumns(rawData);
                         headers = Object.keys(rawData[0] || {});
+                        
+                        // 업로드된 파일명 저장
+                        uploadedFileNames = [file.name];
+                        
                         initializePivotControls();
                         
                         // 성공 메시지
@@ -975,9 +1688,18 @@
                         uploadSection.innerHTML = `
                             <div class="upload-icon">✅</div>
                             <h2 style="color: #28a745;">업로드 완료!</h2>
-                            <p style="margin: 15px 0; color: #6c757d;">${file.name} (${rawData.length}개 행)</p>
+                            <p style="margin: 15px 0; color: #6c757d;">총 ${rawData.length.toLocaleString()}개 행, ${headers.length}개 컬럼</p>
+                            <div class="uploaded-files-info">
+                                <h4>📂 업로드된 파일</h4>
+                                <div>
+                                    <span class="uploaded-file-tag">${file.name}</span>
+                                </div>
+                            </div>
                         `;
-                        alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length}개 행\n컬럼: ${headers.length}개`);
+                        
+                        setTimeout(() => {
+                            alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length.toLocaleString()}개 행\n컬럼: ${headers.length}개`);
+                        }, 100);
                     },
                     error: (error) => {
                         alert('❌ CSV 파일 읽기 실패: ' + error.message);
@@ -1001,6 +1723,10 @@
                         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                         rawData = processDateColumns(jsonData);
                         headers = Object.keys(rawData[0] || {});
+                        
+                        // 업로드된 파일명 저장
+                        uploadedFileNames = [file.name];
+                        
                         initializePivotControls();
                         
                         // 성공 메시지
@@ -1008,9 +1734,18 @@
                         uploadSection.innerHTML = `
                             <div class="upload-icon">✅</div>
                             <h2 style="color: #28a745;">업로드 완료!</h2>
-                            <p style="margin: 15px 0; color: #6c757d;">${file.name} (${rawData.length}개 행)</p>
+                            <p style="margin: 15px 0; color: #6c757d;">총 ${rawData.length.toLocaleString()}개 행, ${headers.length}개 컬럼</p>
+                            <div class="uploaded-files-info">
+                                <h4>📂 업로드된 파일</h4>
+                                <div>
+                                    <span class="uploaded-file-tag">${file.name}</span>
+                                </div>
+                            </div>
                         `;
-                        alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length}개 행\n컬럼: ${headers.length}개`);
+                        
+                        setTimeout(() => {
+                            alert(`✅ 파일 업로드 완료!\n\n파일명: ${file.name}\n데이터: ${rawData.length.toLocaleString()}개 행\n컬럼: ${headers.length}개`);
+                        }, 100);
                     } catch (error) {
                         alert('❌ Excel 파일 읽기 실패: ' + error.message);
                         uploadSection.style.opacity = '1';
@@ -1119,18 +1854,29 @@
         ['rowsZone', 'columnsZone', 'valuesZone'].forEach(zoneId => {
             const zone = document.getElementById(zoneId);
             
+            if (!zone) return; // 요소가 없으면 스킵
+            
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                zone.classList.add('drag-over');
+                const target = e.currentTarget;
+                if (target && target.classList) {
+                    target.classList.add('drag-over');
+                }
             });
 
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over');
+            zone.addEventListener('dragleave', (e) => {
+                const target = e.currentTarget;
+                if (target && target.classList) {
+                    target.classList.remove('drag-over');
+                }
             });
 
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
-                zone.classList.remove('drag-over');
+                const target = e.currentTarget;
+                if (target && target.classList) {
+                    target.classList.remove('drag-over');
+                }
                 const fieldName = e.dataTransfer.getData('text/plain');
                 
                 if (zoneId === 'valuesZone') {
@@ -1394,11 +2140,18 @@
             
             // result section 표시
             const resultSection = document.getElementById('resultSection');
-            resultSection.style.display = 'block';
-            resultSection.classList.add('active');
+            if (resultSection) {
+                resultSection.style.display = 'block';
+                if (resultSection.classList) {
+                    resultSection.classList.add('active');
+                }
+            }
             
             // 차트 섹션 숨기기 (시각화 버튼 클릭 시 표시)
-            document.getElementById('chartSection').classList.add('hidden');
+            const chartSection = document.getElementById('chartSection');
+            if (chartSection && chartSection.classList) {
+                chartSection.classList.add('hidden');
+            }
         }
 
         function createPivotData() {
@@ -1864,6 +2617,8 @@
 
         function toggleChartSection() {
             const chartSection = document.getElementById('chartSection');
+            if (!chartSection || !chartSection.classList) return;
+            
             if (chartSection.classList.contains('hidden')) {
                 createChart();
             } else {
@@ -1897,11 +2652,14 @@
             // 행 개수와 값 컬럼 개수 파악
             const rowFieldsCount = pivotConfig.rows.length;
             const firstRow = dataRows[0];
-            const valueCellsCount = firstRow.cells.length - rowFieldsCount;
+            // No 컬럼(1개) + 행 필드들 = 건너뛸 컬럼 수
+            const skipColumns = 1 + rowFieldsCount;
+            const valueCellsCount = firstRow.cells.length - skipColumns;
             
-            // 행 레이블 추출 (첫 번째 행 필드만 사용)
+            // 행 레이블 추출 (No 컬럼 제외하고 첫 번째 행 필드 사용)
             dataRows.forEach(row => {
-                const label = row.cells[0].textContent;
+                // cells[0]은 No 컬럼이므로, cells[1]부터 행 필드 값
+                const label = row.cells[1].textContent;
                 labels.push(label);
             });
 
@@ -1935,8 +2693,9 @@
             let barIndex = 0;
             let lineIndex = 0;
             
+            // 값(Values) 컬럼만 반복 (No + 행 필드들 건너뛰기)
             for (let i = 0; i < valueCellsCount; i++) {
-                const columnIndex = rowFieldsCount + i;
+                const columnIndex = skipColumns + i; // No(1) + 행필드들 + 값 인덱스
                 const data = [];
                 
                 dataRows.forEach(row => {
@@ -1978,11 +2737,15 @@
 
             // 차트 섹션 표시
             const chartSection = document.getElementById('chartSection');
-            chartSection.classList.remove('hidden');
+            if (chartSection && chartSection.classList) {
+                chartSection.classList.remove('hidden');
+            }
 
             // 차트 제목 설정
             const chartTitle = document.getElementById('chartTitle');
-            chartTitle.textContent = `📊 ${pivotConfig.rows.join(', ')} 기준 데이터 시각화`;
+            if (chartTitle) {
+                chartTitle.textContent = `📊 ${pivotConfig.rows.join(', ')} 기준 데이터 시각화`;
+            }
 
             // 차트 설정 UI 표시
             renderChartSettings(datasets);
@@ -1994,8 +2757,35 @@
         function renderChartSettings(datasets) {
             const chartSettings = document.getElementById('chartSettings');
             
-            chartSettings.classList.remove('hidden');
+            if (!chartSettings) return;
+            
+            if (chartSettings.classList) {
+                chartSettings.classList.remove('hidden');
+            }
             chartSettings.innerHTML = '<h4>📊 차트 설정</h4>';
+            
+            // X축 정보 표시 (고정, 변경 불가)
+            const xAxisInfo = document.createElement('div');
+            xAxisInfo.style.cssText = 'padding: 12px; background: #e7e9ff; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #667eea;';
+            xAxisInfo.innerHTML = `
+                <strong style="color: #667eea;">📍 X축 (고정):</strong> 
+                <span style="color: #333; font-weight: 600;">${pivotConfig.rows.join(', ')}</span>
+                <div style="font-size: 0.85em; color: #6c757d; margin-top: 4px;">
+                    * X축은 행(Rows) 필드로 자동 설정됩니다
+                </div>
+            `;
+            chartSettings.appendChild(xAxisInfo);
+            
+            // 구분선
+            const divider = document.createElement('div');
+            divider.style.cssText = 'border-bottom: 2px solid #e9ecef; margin: 15px 0;';
+            chartSettings.appendChild(divider);
+            
+            // Y축 값들 설정
+            const yAxisTitle = document.createElement('h5');
+            yAxisTitle.textContent = '📈 Y축 값 설정';
+            yAxisTitle.style.cssText = 'color: #667eea; margin-bottom: 10px; font-size: 0.95em;';
+            chartSettings.appendChild(yAxisTitle);
             
             datasets.forEach((dataset, index) => {
                 const itemDiv = document.createElement('div');
