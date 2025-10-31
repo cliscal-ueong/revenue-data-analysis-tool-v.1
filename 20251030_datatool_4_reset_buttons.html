@@ -1070,6 +1070,40 @@
             transform: translateY(-2px);
         }
 
+        .reset-filter-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-filter-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .reset-pivot-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-pivot-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
         @media (max-width: 768px) {
             .control-grid {
                 grid-template-columns: 1fr;
@@ -1141,7 +1175,15 @@
                         <div class="filter-item">
                             <button class="apply-filter-btn" onclick="applyDateFilter()">필터 적용</button>
                         </div>
+                        <div class="filter-item">
+                            <button class="reset-filter-btn" onclick="resetDateFilter()">🔄 기간 필터 초기화</button>
+                        </div>
                     </div>
+                </div>
+
+                <!-- 행, 열, 값 초기화 버튼 -->
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <button class="reset-pivot-btn" onclick="resetPivotConfig()">🔄 행/열/값 초기화</button>
                 </div>
 
                 <!-- 행, 열, 값 컨트롤 -->
@@ -2008,6 +2050,20 @@
                 }));
         }
 
+        function resetPivotConfig() {
+            // 행/열/값 영역 비우기
+            document.getElementById('rowsZone').innerHTML = '';
+            document.getElementById('columnsZone').innerHTML = '';
+            document.getElementById('valuesZone').innerHTML = '';
+            
+            // pivotConfig 초기화
+            pivotConfig.rows = [];
+            pivotConfig.columns = [];
+            pivotConfig.values = [];
+            
+            alert('✅ 행/열/값 설정이 초기화되었습니다.');
+        }
+
         // 일시 데이터에서 시간 제거 및 포맷팅하는 헬퍼 함수
         function formatDateString(dateStr, grouping) {
             if (!dateStr) return '(공백)';
@@ -2082,6 +2138,31 @@
             }
 
             alert(`필터 적용 완료: ${filteredData.length}개의 데이터가 선택되었습니다.`);
+        }
+
+        function resetDateFilter() {
+            // 시작일/종료일 초기화
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            // 일시 그룹핑 버튼 초기화 (일별로 리셋)
+            document.querySelectorAll('.date-group-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.group === 'daily') {
+                    btn.classList.add('active');
+                }
+            });
+            dateGrouping = 'daily';
+            
+            // 전체 데이터로 복원
+            filteredData = [...rawData];
+            dateFilter = { startDate: null, endDate: null };
+            
+            // 행 영역 초기화
+            document.getElementById('rowsZone').innerHTML = '';
+            pivotConfig.rows = [];
+            
+            alert('✅ 기간 필터가 초기화되었습니다.');
         }
 
         function applyDateGrouping() {
@@ -2515,6 +2596,10 @@
             
             let visibleCount = 0;
             let totalCount = rows.length;
+            const totalRow = rows[0]; // TOTAL 행
+            
+            // 보이는 행들만 저장
+            const visibleRows = [];
             
             rows.forEach((row, index) => {
                 // 첫 번째 행은 TOTAL(합계) 행이므로 항상 표시
@@ -2529,6 +2614,7 @@
                 if (searchTerms.length === 0) {
                     row.style.display = '';
                     visibleCount++;
+                    visibleRows.push(row);
                     return;
                 }
                 
@@ -2538,10 +2624,14 @@
                 if (isMatch) {
                     row.style.display = '';
                     visibleCount++;
+                    visibleRows.push(row);
                 } else {
                     row.style.display = 'none';
                 }
             });
+            
+            // TOTAL 행 업데이트 (보이는 행들만 집계)
+            updateTotalRow(totalRow, visibleRows);
             
             // 검색 결과 정보 표시
             const searchInfo = document.getElementById('searchInfo');
@@ -2550,6 +2640,69 @@
             } else {
                 const termsText = searchTerms.length > 1 ? `검색어 ${searchTerms.length}개` : `검색어: ${searchTerms[0]}`;
                 searchInfo.textContent = `${termsText} | 결과: ${visibleCount}개 / 전체 ${totalCount - 1}개 행`; // TOTAL 행 제외
+            }
+        }
+        
+        function updateTotalRow(totalRow, visibleRows) {
+            if (!totalRow || visibleRows.length === 0) return;
+            
+            // No 컬럼(1) + 행 필드들을 건너뛰고 값 컬럼부터 시작
+            const skipColumns = 1 + pivotConfig.rows.length;
+            const totalCells = totalRow.cells;
+            
+            // 각 값 컬럼별로 집계
+            let valueIndex = 0;
+            for (let colIndex = skipColumns; colIndex < totalCells.length; colIndex++) {
+                const values = [];
+                
+                // 보이는 행들에서 해당 컬럼의 값 수집
+                visibleRows.forEach(row => {
+                    const cell = row.cells[colIndex];
+                    if (cell) {
+                        const cellValue = cell.textContent.trim();
+                        if (cellValue !== '-') {
+                            const numValue = parseFloat(cellValue.replace(/,/g, ''));
+                            if (!isNaN(numValue)) {
+                                values.push(numValue);
+                            }
+                        }
+                    }
+                });
+                
+                // 해당 값 필드의 집계 방식 가져오기
+                const valueConfig = pivotConfig.values[valueIndex % pivotConfig.values.length];
+                let totalValue = 0;
+                
+                if (values.length > 0) {
+                    switch (valueConfig.aggregation) {
+                        case 'sum':
+                            totalValue = values.reduce((a, b) => a + b, 0);
+                            break;
+                        case 'avg':
+                            totalValue = values.reduce((a, b) => a + b, 0) / values.length;
+                            break;
+                        case 'count':
+                            totalValue = values.reduce((a, b) => a + b, 0);
+                            break;
+                        case 'unique':
+                            totalValue = values.reduce((a, b) => a + b, 0);
+                            break;
+                        case 'min':
+                            totalValue = Math.min(...values);
+                            break;
+                        case 'max':
+                            totalValue = Math.max(...values);
+                            break;
+                    }
+                }
+                
+                // TOTAL 셀 업데이트
+                const totalCell = totalCells[colIndex];
+                if (totalCell) {
+                    totalCell.textContent = totalValue.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+                }
+                
+                valueIndex++;
             }
         }
 
@@ -2651,6 +2804,10 @@
             tbody.innerHTML = '';
             tbody.appendChild(totalRow);
             dataRows.forEach(row => tbody.appendChild(row));
+            
+            // 정렬 후에도 보이는 행들만 반영하여 TOTAL 업데이트
+            const visibleRows = dataRows.filter(row => row.style.display !== 'none');
+            updateTotalRow(totalRow, visibleRows);
         }
 
         function toggleChartSection() {
