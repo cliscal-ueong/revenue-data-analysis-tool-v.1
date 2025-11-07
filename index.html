@@ -1386,6 +1386,7 @@
         let chartInstance = null; // 차트 인스턴스
         let chartTypeConfig = {}; // 각 데이터셋의 차트 타입 설정 {datasetLabel: 'bar' or 'line'}
         let axisConfig = {}; // 각 데이터셋의 축 설정 {datasetLabel: 'left' or 'right'}
+        let summaryMode = 'total'; // 'total', 'average', 'median' - Summary 행 표시 모드
         
         // 다중 파일 업로드 관련 변수
         let pendingFiles = []; // 업로드 대기 중인 파일들
@@ -2572,12 +2573,41 @@
             totalRow.appendChild(totalNoTd);
             
             const totalLabelTd = document.createElement('td');
-            totalLabelTd.textContent = 'TOTAL(합계)';
+            totalLabelTd.textContent = '↻ TOTAL(합계)';
             totalLabelTd.colSpan = pivotConfig.rows.length;
             totalLabelTd.style.fontWeight = 'bold';
             totalLabelTd.style.background = '#e7e9ff';
             totalLabelTd.style.color = '#333';
             totalLabelTd.style.textAlign = 'center';
+            totalLabelTd.style.cursor = 'pointer';
+            totalLabelTd.style.transition = 'all 0.2s';
+            totalLabelTd.title = '클릭하여 합계/평균/중간값 전환';
+            
+            // 호버 효과
+            totalLabelTd.addEventListener('mouseenter', () => {
+                totalLabelTd.style.background = '#d0d4ff';
+                totalLabelTd.style.transform = 'scale(1.02)';
+            });
+            totalLabelTd.addEventListener('mouseleave', () => {
+                totalLabelTd.style.background = '#e7e9ff';
+                totalLabelTd.style.transform = 'scale(1)';
+            });
+            
+            // 토글 클릭 이벤트
+            totalLabelTd.addEventListener('click', () => {
+                if (summaryMode === 'total') {
+                    summaryMode = 'average';
+                    totalLabelTd.textContent = '↻ AVER(평균)';
+                } else if (summaryMode === 'average') {
+                    summaryMode = 'median';
+                    totalLabelTd.textContent = '↻ MED(중간값)';
+                } else {
+                    summaryMode = 'total';
+                    totalLabelTd.textContent = '↻ TOTAL(합계)';
+                }
+                updateSummaryRow();
+            });
+            
             totalRow.appendChild(totalLabelTd);
 
             uniqueCols.forEach(colKey => {
@@ -2748,21 +2778,54 @@
             }
         }
         
-        function updateTotalRow(totalRow, visibleRows) {
-            if (!totalRow || visibleRows.length === 0) return;
+        function updateSummaryRow() {
+            const table = document.getElementById('pivotTable');
+            if (!table) return;
             
-            // No 컬럼(1) + 행 필드들을 건너뛰고 값 컬럼부터 시작
-            const skipColumns = 1 + pivotConfig.rows.length;
+            const tbody = table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            const totalRow = rows[0]; // 첫 번째 행 = Summary 행
+            
+            // 레이블 업데이트
+            const labelCell = totalRow.cells[1]; // No(0) 다음 셀
+            if (labelCell) {
+                if (summaryMode === 'total') {
+                    labelCell.textContent = '↻ TOTAL(합계)';
+                } else if (summaryMode === 'average') {
+                    labelCell.textContent = '↻ AVER(평균)';
+                } else if (summaryMode === 'median') {
+                    labelCell.textContent = '↻ MED(중간값)';
+                }
+            }
+            
+            // 보이는 행들만 수집 (TOTAL 행 제외)
+            const visibleRows = [];
+            rows.forEach((row, index) => {
+                if (index !== 0 && row.style.display !== 'none') {
+                    visibleRows.push(row);
+                }
+            });
+            
+            if (visibleRows.length === 0) return;
+            
+            // TOTAL 행과 데이터 행의 셀 인덱스 계산
+            const totalRowStartIndex = 2;  // No(1) + 레이블(1)
+            const dataRowStartIndex = 1 + pivotConfig.rows.length;  // No(1) + 행 필드들
+            const indexOffset = dataRowStartIndex - totalRowStartIndex;
+            
             const totalCells = totalRow.cells;
             
             // 각 값 컬럼별로 집계
             let valueIndex = 0;
-            for (let colIndex = skipColumns; colIndex < totalCells.length; colIndex++) {
+            for (let totalColIndex = totalRowStartIndex; totalColIndex < totalCells.length; totalColIndex++) {
                 const values = [];
+                
+                // 데이터 행의 해당 컬럼 인덱스 계산
+                const dataColIndex = totalColIndex + indexOffset;
                 
                 // 보이는 행들에서 해당 컬럼의 값 수집
                 visibleRows.forEach(row => {
-                    const cell = row.cells[colIndex];
+                    const cell = row.cells[dataColIndex];
                     if (cell) {
                         const cellValue = cell.textContent.trim();
                         if (cellValue !== '-') {
@@ -2776,39 +2839,58 @@
                 
                 // 해당 값 필드의 집계 방식 가져오기
                 const valueConfig = pivotConfig.values[valueIndex % pivotConfig.values.length];
-                let totalValue = 0;
+                let resultValue = 0;
                 
                 if (values.length > 0) {
-                    switch (valueConfig.aggregation) {
-                        case 'sum':
-                            totalValue = values.reduce((a, b) => a + b, 0);
-                            break;
-                        case 'avg':
-                            totalValue = values.reduce((a, b) => a + b, 0) / values.length;
-                            break;
-                        case 'count':
-                            totalValue = values.reduce((a, b) => a + b, 0);
-                            break;
-                        case 'unique':
-                            totalValue = values.reduce((a, b) => a + b, 0);
-                            break;
-                        case 'min':
-                            totalValue = Math.min(...values);
-                            break;
-                        case 'max':
-                            totalValue = Math.max(...values);
-                            break;
+                    // summaryMode에 따라 계산 방식 선택
+                    if (summaryMode === 'average') {
+                        // 평균: 모든 값의 평균
+                        resultValue = values.reduce((a, b) => a + b, 0) / values.length;
+                    } else if (summaryMode === 'median') {
+                        // 중간값: 정렬 후 중앙값
+                        const sorted = values.slice().sort((a, b) => a - b);
+                        const mid = Math.floor(sorted.length / 2);
+                        resultValue = sorted.length % 2 === 0 
+                            ? (sorted[mid - 1] + sorted[mid]) / 2 
+                            : sorted[mid];
+                    } else {
+                        // total: 기존 집계 방식대로
+                        switch (valueConfig.aggregation) {
+                            case 'sum':
+                                resultValue = values.reduce((a, b) => a + b, 0);
+                                break;
+                            case 'avg':
+                                resultValue = values.reduce((a, b) => a + b, 0) / values.length;
+                                break;
+                            case 'count':
+                                resultValue = values.reduce((a, b) => a + b, 0);
+                                break;
+                            case 'unique':
+                                resultValue = values.reduce((a, b) => a + b, 0);
+                                break;
+                            case 'min':
+                                resultValue = Math.min(...values);
+                                break;
+                            case 'max':
+                                resultValue = Math.max(...values);
+                                break;
+                        }
                     }
                 }
                 
-                // TOTAL 셀 업데이트
-                const totalCell = totalCells[colIndex];
-                if (totalCell) {
-                    totalCell.textContent = totalValue.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+                // Summary 셀 업데이트
+                const summaryCell = totalCells[totalColIndex];
+                if (summaryCell) {
+                    summaryCell.textContent = resultValue.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
                 }
                 
                 valueIndex++;
             }
+        }
+        
+        // 하위 호환성을 위한 updateTotalRow 함수 (updateSummaryRow 호출)
+        function updateTotalRow(totalRow, visibleRows) {
+            updateSummaryRow();
         }
 
         function exportToCSV() {
@@ -3430,6 +3512,15 @@ ${sampleData.slice(0, 50).map((row, i) => `${i+1}. ${row.join(' | ')}`).join('\n
    - ✅ "매출이 23% 증가했는데, 이는 (1) 신규 고객 유입 증가 (2) 객단가 상승 때문으로 추론됩니다" (해석 + 원인 분석)
 4. 상세하고 깊이있는 내용으로 작성하되, 쉬운 언어와 표현을 사용하세요.
 5. 단순히 데이터를 나열하지 말고, 그 데이터가 비즈니스에 무엇을 의미하는지 항상 해석하세요.
+6. **종합 전략 제안 시 타 회사 사례는 반드시:**
+   - 회사명 + 구체적 기획명
+   - 상세한 기획 내용 (어떻게 실행했는지)
+   - 투자 규모 (금액/인력/기간)
+   - 성과 지표 (Before → After → 변화율)
+   - 출처 URL (하이퍼링크)
+7. **사례와 예시를 명확히 분리:**
+   - 사례 = 타 회사 실제 사례 (과거형, 출처 있음)
+   - 예시 = 현재 데이터 기반 실행 가능한 액션 아이디어 (현재/미래형)
 
 ## ✅ 분석 순서
 
@@ -3532,6 +3623,51 @@ ${sampleData.slice(0, 50).map((row, i) => `${i+1}. ${row.join(' | ')}`).join('\n
 
 우선순위 기준으로 정리된 실행 로드맵을 제안합니다.
 
+**각 전략마다 반드시 포함해야 할 내용:**
+
+### 형식 (반드시 준수):
+
+#### 우선순위 N: [전략명]
+
+**실행 아이디어:**
+- 구체적인 실행 방법 1
+- 구체적인 실행 방법 2
+
+**타 회사 실제 사례:**
+
+**[회사명] - [구체적인 기획/프로젝트명]**
+
+**기획 내용:** 
+무엇을 어떻게 했는지 구체적으로 설명 (예: "고객 세그먼트를 5개로 나누고, 각 세그먼트별로 맞춤형 이메일 캠페인을 설계. 주 3회 발송에서 AI 기반 최적 타이밍 발송으로 전환")
+
+**투자 규모:** 
+구체적인 투자 금액 또는 리소스 (예: "마케팅 예산 $2.5M 투입, 6개월 프로젝트")
+
+**성과:**
+- 지표 1: [이전 수치] → [이후 수치] ([변화율])
+- 지표 2: [이전 수치] → [이후 수치] ([변화율])
+- ROI: [구체적 수치]
+
+**출처:** [실제 URL 하이퍼링크]
+
+**현재 데이터 적용 예시:**
+
+우리 데이터를 기반으로 한 구체적이고 실행 가능한 액션 아이디어:
+1. [구체적 액션 1]: [어떻게 실행할 것인지 상세히]
+2. [구체적 액션 2]: [어떻게 실행할 것인지 상세히]
+3. [구체적 액션 3]: [어떻게 실행할 것인지 상세히]
+
+**예상 성과:**
+- 현재: [구체적 지표] = [현재 수치]
+- 목표: [구체적 지표] = [목표 수치]
+- 증가율: X% 향상
+- 예상 투자: [금액/리소스]
+- 예상 ROI: [배수]
+
+---
+
+(우선순위 2, 3, ... 동일한 형식으로 작성)
+
 ---
 
 # 작성 가이드라인
@@ -3567,7 +3703,58 @@ ${sampleData.slice(0, 50).map((row, i) => `${i+1}. ${row.join(' | ')}`).join('\n
 - 비정상적인 패턴이나 기회가 보이는 구간을 우선적으로 다뤄야 함
 - 당연한 사실(예: 매출이 높으면 이익도 높다)은 완전히 생략
 - 초보자도 이해할 수 있도록 쉬운 용어 사용
-- 각 인사이트마다 비즈니스 임팩트를 명확히 설명`;
+- 각 인사이트마다 비즈니스 임팩트를 명확히 설명
+
+## 📊 종합 전략 제안 작성 요구사항
+
+**종합 전략 제안은 반드시 다음을 포함하며, 사례와 예시를 명확히 분리:**
+
+### 1. 타 회사 실제 사례 (필수)
+
+**반드시 포함해야 할 내용:**
+- **회사명 + 구체적인 기획/프로젝트명**: "넷플릭스 개인화 추천 알고리즘 3.0 프로젝트"
+- **기획 내용**: 
+  - ❌ "마케팅 캠페인을 진행했습니다"
+  - ❌ "프로모션을 했습니다"
+  - ✅ "사용자 시청 이력 데이터를 기반으로 80개 변수를 분석하는 머신러닝 모델을 개발. A/B 테스트를 통해 3개월간 100만 사용자 대상 실험. 추천 정확도를 기존 75%에서 93%로 개선하는 알고리즘 배포"
+  
+- **투자 규모**: 
+  - ✅ "개발팀 25명 투입, 6개월 소요, 총 $4.2M 투자"
+  - ✅ "마케팅 예산 $1.5M, 광고비 $800K, 인플루언서 협업 $300K"
+  
+- **성과 지표** (구체적 숫자):
+  - Before → After → 변화율
+  - ✅ "이탈률 8.2% → 3.1% (62% 감소)"
+  - ✅ "MAU 850만 → 1,240만 (46% 증가)"
+  - ✅ "ARPU $12.5 → $17.8 (42% 증가)"
+  - ROI 명시: "투자 대비 3.2배 수익"
+  
+- **출처 URL** (필수): 실제 기사, 케이스 스터디, 공식 발표 링크
+  - 형식: [URL을 하이퍼링크로 제공]
+  - 예: https://netflix.techblog.com/personalization-case-study
+
+### 2. 현재 데이터 적용 예시 (필수, 사례와 별도)
+
+**우리 데이터를 기반으로 한 구체적 액션 아이디어:**
+- ❌ "콘텐츠를 다양화합니다"
+- ❌ "마케팅을 강화합니다"
+- ✅ "상위 10% 콘텐츠 ID를 분석하여 공통 특성(색상, 스타일, 주제) 3가지를 도출. 이 특성을 반영한 신규 콘텐츠 20개를 2주 내 제작. 기존 구매자에게 '맞춤 추천' 푸시 알림 발송. 신규 카테고리 페이지 제작 및 메인 배너 노출 30% 할당"
+
+**명확한 실행 단계:**
+1. [1단계]: 구체적 액션 (기간, 담당, 방법)
+2. [2단계]: 구체적 액션 (기간, 담당, 방법)
+3. [3단계]: 구체적 액션 (기간, 담당, 방법)
+
+**예상 성과 (숫자로):**
+- 현재 상태: [지표명] = [현재 수치]
+- 목표: [지표명] = [목표 수치] 
+- 증가율: X%
+- 예상 투자: [금액/시간/인력]
+- 예상 ROI: [배수]
+
+### 중요: 사례와 예시는 완전히 분리
+- **사례**: 타 회사가 실제로 한 것 (과거형, 출처 있음)
+- **예시**: 우리가 할 수 있는 것 (현재/미래형, 현재 데이터 기반)`;
 
                 // Groq API 호출
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -3583,7 +3770,7 @@ ${sampleData.slice(0, 50).map((row, i) => `${i+1}. ${row.join(' | ')}`).join('\n
                             content: prompt
                         }],
                         temperature: 0.7,
-                        max_tokens: 8000
+                        max_tokens: 10000
                     })
                 });
 
