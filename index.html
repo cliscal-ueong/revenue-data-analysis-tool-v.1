@@ -373,6 +373,83 @@
             font-weight: 600;
         }
 
+        /* 업로드된 파일 리스트 (개별 관리용) */
+        .uploaded-files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .uploaded-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+
+        .uploaded-file-item:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .uploaded-file-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .uploaded-file-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .uploaded-file-rows {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .uploaded-file-remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .uploaded-file-remove-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .add-more-files-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+
+        .add-more-files-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
         /* 필드 영역 상단의 파일 정보 */
         .current-files-info {
             background: linear-gradient(135deg, #e7e9ff 0%, #f0e7ff 100%);
@@ -1391,6 +1468,7 @@
         // 다중 파일 업로드 관련 변수
         let pendingFiles = []; // 업로드 대기 중인 파일들
         let uploadedFileNames = []; // 병합 완료된 파일명들
+        let fileDataMap = {}; // 각 파일의 데이터를 개별 저장 {파일명: {data: [], rowCount: N}}
 
         // 파일 업로드 처리
         const uploadSection = document.getElementById('uploadSection');
@@ -1756,6 +1834,12 @@
                         }
                     }
                     
+                    // 데이터 병합 전에 개별 파일 데이터 저장
+                    fileDataMap[file.name] = {
+                        data: fileData,
+                        rowCount: fileData.length
+                    };
+                    
                     // 데이터 병합
                     allData = allData.concat(fileData);
                 }
@@ -1780,11 +1864,23 @@
                         총 ${rawData.length.toLocaleString()}개 행, ${headers.length}개 컬럼
                     </p>
                     <div class="uploaded-files-info">
-                        <h4>📂 업로드된 파일</h4>
-                        <div>
-                            ${uploadedFileNames.map(name => `<span class="uploaded-file-tag">${name}</span>`).join('')}
+                        <h4 style="margin-bottom: 15px;">📂 업로드된 파일</h4>
+                        <div id="uploadedFilesList" class="uploaded-files-list">
+                            ${uploadedFileNames.map(name => {
+                                const fileInfo = fileDataMap[name];
+                                return `
+                                    <div class="uploaded-file-item">
+                                        <div class="uploaded-file-item-info">
+                                            <span class="uploaded-file-name">📄 ${name}</span>
+                                            <span class="uploaded-file-rows">${fileInfo.rowCount.toLocaleString()}개 행</span>
+                                        </div>
+                                        <button onclick="removeUploadedFile('${name.replace(/'/g, "\\'")}')" class="uploaded-file-remove-btn">삭제</button>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
+                    <button onclick="addMoreFiles()" class="add-more-files-btn">➕ 파일 추가하기</button>
                 `;
                 
                 // 파일 목록 초기화
@@ -2502,9 +2598,9 @@
                     headerRow.appendChild(th);
                 });
             } else {
-                let colIdx = valueColumnIndex;
-                uniqueCols.forEach(col => {
-                    pivotConfig.values.forEach(v => {
+                let actualCellIndex = valueColumnIndex;  // 실제 셀 인덱스 추적
+                uniqueCols.forEach((col, colIndex) => {
+                    pivotConfig.values.forEach((v, valIndex) => {
                         const th = document.createElement('th');
                         th.className = 'sortable-header';
                         const aggName = {
@@ -2516,11 +2612,13 @@
                             'max': '최대값'
                         }[v.aggregation];
                         
-                        th.innerHTML = `${col} - ${v.field} (${aggName})<span class="sort-icon" id="sort-icon-${colIdx}">↕️</span>`;
-                        th.onclick = () => sortTable(colIdx);
+                        // 실제 셀 인덱스를 사용 (클로저 문제 방지)
+                        const cellIndex = actualCellIndex;
+                        th.innerHTML = `${col} - ${v.field} (${aggName})<span class="sort-icon" id="sort-icon-${cellIndex}">↕️</span>`;
+                        th.onclick = () => sortTable(cellIndex);
                         
                         headerRow.appendChild(th);
-                        colIdx++;
+                        actualCellIndex++;  // 다음 셀 인덱스로 증가
                     });
                 });
             }
@@ -2968,8 +3066,13 @@
             
             // 데이터 정렬
             dataRows.sort((a, b) => {
-                const aValue = a.cells[columnIndex].textContent;
-                const bValue = b.cells[columnIndex].textContent;
+                // cells 배열 접근 전에 존재 여부 확인
+                if (!a.cells[columnIndex] || !b.cells[columnIndex]) {
+                    return 0;
+                }
+                
+                const aValue = a.cells[columnIndex].textContent.trim();
+                const bValue = b.cells[columnIndex].textContent.trim();
                 
                 // '-' 값 처리
                 if (aValue === '-' && bValue === '-') return 0;
@@ -2980,10 +3083,24 @@
                 const aNum = parseFloat(aValue.replace(/,/g, ''));
                 const bNum = parseFloat(bValue.replace(/,/g, ''));
                 
+                // 둘 다 숫자인 경우
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    if (sortState.direction === 'asc') {
+                        return aNum - bNum;
+                    } else {
+                        return bNum - aNum;
+                    }
+                }
+                
+                // 하나만 숫자인 경우
+                if (!isNaN(aNum)) return sortState.direction === 'asc' ? -1 : 1;
+                if (!isNaN(bNum)) return sortState.direction === 'asc' ? 1 : -1;
+                
+                // 둘 다 문자열인 경우
                 if (sortState.direction === 'asc') {
-                    return aNum - bNum;
+                    return aValue.localeCompare(bValue, 'ko-KR');
                 } else {
-                    return bNum - aNum;
+                    return bValue.localeCompare(aValue, 'ko-KR');
                 }
             });
             
@@ -3838,6 +3955,190 @@ ${sampleData.slice(0, 50).map((row, i) => `${i+1}. ${row.join(' | ')}`).join('\n
             if (confirm('저장된 API 키를 삭제하시겠습니까?')) {
                 localStorage.removeItem('groq_api_key');
                 alert('API 키가 삭제되었습니다. 다음 Insight 생성 시 새로운 키를 입력해주세요.');
+            }
+        }
+
+        // 업로드된 파일 개별 삭제
+        async function removeUploadedFile(fileName) {
+            if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?\n\n삭제 후 데이터가 재분석됩니다.`)) {
+                return;
+            }
+
+            try {
+                // fileDataMap에서 제거
+                delete fileDataMap[fileName];
+                
+                // uploadedFileNames에서 제거
+                uploadedFileNames = uploadedFileNames.filter(name => name !== fileName);
+                
+                // 남은 파일이 없으면 초기화
+                if (uploadedFileNames.length === 0) {
+                    showToast('⚠️ 모든 파일이 삭제되었습니다. 다시 업로드해주세요.', '#dc3545');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                    return;
+                }
+                
+                // 남은 파일들로 재병합
+                await reprocessFiles();
+                
+                showToast(`✅ "${fileName}" 삭제 완료!`, '#28a745');
+                
+            } catch (error) {
+                console.error('파일 삭제 오류:', error);
+                alert(`❌ 파일 삭제 중 오류가 발생했습니다.\n\n${error.message}`);
+            }
+        }
+
+        // 파일 추가
+        function addMoreFiles() {
+            // 파일 선택 다이얼로그 열기
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.multiple = true;
+            input.accept = '.csv,.xlsx,.xls';
+            
+            input.onchange = async (e) => {
+                const newFiles = Array.from(e.target.files);
+                
+                if (newFiles.length === 0) return;
+                
+                try {
+                    // 중복 파일명 체크
+                    for (const file of newFiles) {
+                        if (uploadedFileNames.includes(file.name)) {
+                            throw new Error(`"${file.name}"은(는) 이미 업로드된 파일입니다.`);
+                        }
+                    }
+                    
+                    // 새 파일 읽기 및 처리
+                    for (const file of newFiles) {
+                        const fileName = file.name.toLowerCase();
+                        let fileData = [];
+                        
+                        if (fileName.endsWith('.csv')) {
+                            // CSV 파일 처리
+                            fileData = await new Promise((resolve, reject) => {
+                                Papa.parse(file, {
+                                    header: true,
+                                    complete: (results) => {
+                                        const cleanData = results.data.filter(row => Object.values(row).some(val => val !== ''));
+                                        resolve(cleanData);
+                                    },
+                                    error: (error) => reject(error)
+                                });
+                            });
+                        } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                            // Excel 파일 처리
+                            fileData = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    try {
+                                        const data = new Uint8Array(e.target.result);
+                                        const workbook = XLSX.read(data, { type: 'array' });
+                                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                                        resolve(jsonData);
+                                    } catch (error) {
+                                        reject(error);
+                                    }
+                                };
+                                reader.onerror = () => reject(new Error('파일 읽기 실패'));
+                                reader.readAsArrayBuffer(file);
+                            });
+                        }
+                        
+                        // 빈 데이터 체크
+                        if (fileData.length === 0) {
+                            throw new Error(`${file.name}에 데이터가 없습니다.`);
+                        }
+                        
+                        // 헤더 일치 확인
+                        const newHeaders = Object.keys(fileData[0]);
+                        const existingHeaders = headers;
+                        
+                        const headersMatch = existingHeaders.length === newHeaders.length && 
+                                           existingHeaders.every(h => newHeaders.includes(h));
+                        
+                        if (!headersMatch) {
+                            throw new Error(`❌ 파일 구조 불일치!\n\n기존 파일과 ${file.name}의 컬럼이 다릅니다.\n모든 파일의 컬럼 구조가 동일해야 합니다.`);
+                        }
+                        
+                        // fileDataMap에 추가
+                        fileDataMap[file.name] = {
+                            data: fileData,
+                            rowCount: fileData.length
+                        };
+                        
+                        uploadedFileNames.push(file.name);
+                    }
+                    
+                    // 재병합
+                    await reprocessFiles();
+                    
+                    showToast(`✅ ${newFiles.length}개 파일 추가 완료!`, '#28a745');
+                    
+                } catch (error) {
+                    console.error('파일 추가 오류:', error);
+                    alert(`❌ 파일 추가 중 오류가 발생했습니다.\n\n${error.message}`);
+                }
+            };
+            
+            input.click();
+        }
+
+        // 파일 재병합 (삭제/추가 후)
+        async function reprocessFiles() {
+            // 모든 파일 데이터를 다시 병합
+            let allData = [];
+            
+            for (const fileName of uploadedFileNames) {
+                const fileInfo = fileDataMap[fileName];
+                if (fileInfo && fileInfo.data) {
+                    allData = allData.concat(fileInfo.data);
+                }
+            }
+            
+            // 일시 컬럼에서 시간 정보 제거
+            rawData = processDateColumns(allData);
+            headers = Object.keys(rawData[0] || {});
+            
+            // 🔥 중요: filteredData도 업데이트!
+            filteredData = [...rawData];
+            
+            // UI 업데이트
+            const uploadSection = document.getElementById('uploadSection');
+            uploadSection.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h2 style="color: #28a745;">파일 병합 완료!</h2>
+                <p style="margin: 15px 0; color: #6c757d;">
+                    ${uploadedFileNames.length}개 파일 병합 완료<br>
+                    총 ${rawData.length.toLocaleString()}개 행, ${headers.length}개 컬럼
+                </p>
+                <div class="uploaded-files-info">
+                    <h4 style="margin-bottom: 15px;">📂 업로드된 파일</h4>
+                    <div id="uploadedFilesList" class="uploaded-files-list">
+                        ${uploadedFileNames.map(name => {
+                            const fileInfo = fileDataMap[name];
+                            return `
+                                <div class="uploaded-file-item">
+                                    <div class="uploaded-file-item-info">
+                                        <span class="uploaded-file-name">📄 ${name}</span>
+                                        <span class="uploaded-file-rows">${fileInfo.rowCount.toLocaleString()}개 행</span>
+                                    </div>
+                                    <button onclick="removeUploadedFile('${name.replace(/'/g, "\\'")}')" class="uploaded-file-remove-btn">삭제</button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                <button onclick="addMoreFiles()" class="add-more-files-btn">➕ 파일 추가하기</button>
+            `;
+            
+            // 피벗 테이블 재생성
+            if (pivotConfig.rows.length > 0 || pivotConfig.columns.length > 0 || pivotConfig.values.length > 0) {
+                generatePivotTable();
             }
         }
     </script>
