@@ -1416,6 +1416,7 @@
                         <div class="export-buttons">
                             <button class="export-btn" onclick="exportToCSV()">📥 CSV로 내보내기</button>
                             <button class="export-btn" onclick="exportToExcel()">📊 Excel로 내보내기</button>
+                            <button class="export-btn" onclick="exportToGoogleSheets()">📗 구글 시트로 내보내기</button>
                         </div>
                     </div>
 
@@ -3016,6 +3017,64 @@
             const table = document.getElementById('pivotTable');
             const wb = XLSX.utils.table_to_book(table, { sheet: 'Pivot Table' });
             XLSX.writeFile(wb, `pivot_table_${new Date().getTime()}.xlsx`);
+        }
+
+        async function exportToGoogleSheets() {
+            if (!currentPivotData) {
+                alert('❌ 내보낼 데이터가 없습니다!');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '⏳ 구글 시트 생성 중...';
+            button.disabled = true;
+
+            try {
+                // 피벗 테이블 데이터를 배열로 변환
+                const table = document.getElementById('pivotTable');
+                const rows = table.querySelectorAll('tr');
+                const data = [];
+
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('th, td');
+                    const rowData = {};
+                    
+                    cells.forEach((cell, index) => {
+                        rowData[`col${index}`] = cell.textContent.trim();
+                    });
+                    
+                    data.push(rowData);
+                });
+
+                // Google Apps Script URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbwIzqH9VXbHLiFcPmEGLwu_FTDrGnJydxQx_vlJlluBcQkavY3SMulxpjG30aWjC-Z2pQ/exec';
+
+                // Form을 동적으로 생성하여 POST 전송 (새 탭에서 열림)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = scriptUrl;
+                form.target = '_blank';
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'data';
+                input.value = JSON.stringify(data);
+                form.appendChild(input);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                showToast('✅ 새 탭에서 구글 시트가 열립니다!', '#28a745');
+
+            } catch (error) {
+                console.error('구글 시트 내보내기 오류:', error);
+                alert(`❌ 구글 시트 생성 실패!\n\n오류: ${error.message}`);
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
         }
 
         function sortTable(columnIndex) {
